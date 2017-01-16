@@ -11,16 +11,16 @@ const (
 )
 
 type DockerMonitorConfig struct {
-	endpoint    string
-	filterLabel string
-	handler     func(container docker.APIContainers, up bool)
+	Endpoint    string
+	FilterLabel string
+	Handler     func(container docker.APIContainers, up bool)
 }
 
 var falseStrings map[string]bool
 var trackedEvents map[string]TrackedEventType
 var containerById map[string]docker.APIContainers
 
-func startDockerMonitor(config DockerMonitorConfig) {
+func StartDockerMonitor(config DockerMonitorConfig) {
 	falseStrings = map[string]bool{
 		"0": true,
 		"null": true,
@@ -40,12 +40,12 @@ func startDockerMonitor(config DockerMonitorConfig) {
 		"stop": NEGATIVE_EVENT,
 	}
 
-	endpoint := config.endpoint
+	endpoint := config.Endpoint
 	if endpoint == "" {
 		endpoint = "unix:///var/run/docker.sock"
 	}
 
-	filterLabel := config.filterLabel
+	filterLabel := config.FilterLabel
 	if filterLabel == "" {
 		filterLabel = "monitor-logs"
 	}
@@ -102,15 +102,15 @@ func startDockerMonitor(config DockerMonitorConfig) {
 
 func (config *DockerMonitorConfig) updateContainer(container docker.APIContainers) {
 	containerById[container.ID] = container
-	if config.handler != nil {
-		config.handler(container, true)
+	if config.Handler != nil {
+		config.Handler(container, true)
 	}
 }
 
 func (config *DockerMonitorConfig) removeContainer(container docker.APIContainers) {
 	delete(containerById, container.ID)
-	if config.handler != nil {
-		config.handler(container, false)
+	if config.Handler != nil {
+		config.Handler(container, false)
 	}
 }
 

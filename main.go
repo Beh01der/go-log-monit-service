@@ -1,23 +1,18 @@
 package main
 
 import (
-	"github.com/fsouza/go-dockerclient"
 	"fmt"
 	"flag"
+	"github.com/fsouza/go-dockerclient"
 )
-
 
 func main() {
 	filterLabel := flag.String("label", "monitor-logs", "Look for this label in docker containers")
 	flag.Parse()
 	fmt.Printf("Looking for containers labeled with: %s\n", *filterLabel)
 
-	startDockerMonitor(DockerMonitorConfig{filterLabel: *filterLabel, handler: func(container docker.APIContainers, up bool){
-		if up {
-			fmt.Printf("Container Up: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
-		} else {
-			fmt.Printf("Container Down: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
-		}
+	StartDockerLogMonitor(DockerLogMonitorConfig{FilterLabel:*filterLabel, Handler:func(container *docker.APIContainers, logEntry *LogEntry) {
+		fmt.Printf("New log entry %v\n", logEntry)
 	}})
 
 	fmt.Println("Terminating the service")
