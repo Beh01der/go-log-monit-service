@@ -5,3 +5,60 @@ ID=eb68ed9f028f3b3d995cba8b4377b71e6d2e65a6d339c9e4890d8169208d3c2e, Status=netw
 ID=9ab0c80ca105745baa68e1be593b325a3f150fa0d6876c21730979548c549d55, Status=stop, Type=container, Action=stop, From=beh01der/web-service-dockerized-example, Actor={9ab0c80ca105745baa68e1be593b325a3f150fa0d6876c21730979548c549d55 map[image:beh01der/web-service-dockerized-example name:service2]}
 ID=eb68ed9f028f3b3d995cba8b4377b71e6d2e65a6d339c9e4890d8169208d3c2e, Status=network:connect, Type=network, Action=connect, From=, Actor={eb68ed9f028f3b3d995cba8b4377b71e6d2e65a6d339c9e4890d8169208d3c2e map[container:9ab0c80ca105745baa68e1be593b325a3f150fa0d6876c21730979548c549d55 name:isolated type:bridge]}
 ID=9ab0c80ca105745baa68e1be593b325a3f150fa0d6876c21730979548c549d55, Status=start, Type=container, Action=start, From=beh01der/web-service-dockerized-example, Actor={9ab0c80ca105745baa68e1be593b325a3f150fa0d6876c21730979548c549d55 map[image:beh01der/web-service-dockerized-example name:service2]}
+
+Container: {35b94f51f82370585815faa723d6eb5d651bfed1ad5c056405a0cf83e40a7a27 golang:1.7.4-wheezy bash -c 'while true; do echo .; sleep 60; done' %!s(int64=1484484057) running Up 13 hours [] %!s(int64=0) %!s(int64=0) [/golang] map[] {map[bridge:{02:42:ac:11:00:02 %!s(int=0)   %!s(int=16) 172.17.0.2 172.17.0.1 acde07f81bd9683960ca41f63677b38432efd9947b35a50a45c1c6a4e395ba7b }]} [{ /var/run/docker.sock /var/run/docker.sock   %!s(bool=true) }]}
+Container: {93a0f4e7e3b65e1adbe0746d18a41944fb0b04323f30b837085a7b7b6de1f801 e3mzjhyje0ztnlywr/toolbox:1.0.15 /home/entrypoint.sh -c 'while true; do echo Toolbox is running; sleep 60; done' %!s(int64=1484381410) running Up 41 hours [] %!s(int64=0) %!s(int64=0) [/box] map[] {map[isolated:{02:42:ac:14:00:05 %!s(int=0)   %!s(int=16) 172.20.0.5 172.20.0.1 af9ba0c546d420588a3845194a8b9a667fffc37e448e09369ffeedcd1f5c8f25 }]} [{ /home/core/install/_deploy/toolbox /usr/local/bin   %!s(bool=true) }]}
+Container: {6b15490029221e27d28e5685d79ead149800c6600013537b5565ba4c7ac0b019 beh01der/web-service-dockerized-example /bin/sh -c 'cd /home/web-service-dockerized && 	node service.js' %!s(int64=1479171858) running Up 8 weeks [{%!s(int64=3000) %!s(int64=0) tcp }] %!s(int64=0) %!s(int64=0) [/service1] map[] {map[isolated:{02:42:ac:14:00:03 %!s(int=0)   %!s(int=16) 172.20.0.3 172.20.0.1 9843646d2fe7e1e1ba82eee9b19ca72acc7d2a0cb585668ab1783b5b6cba0445 }]} []}
+Container: {82ccc64dbe60037c33914231bf5b1e78f0cd5bfd76b67a339aff660ed4512957 nginx:1.11.5-alpine nginx -g 'daemon off;' %!s(int64=1478816970) running Up 8 weeks [{%!s(int64=443) %!s(int64=0) tcp } {%!s(int64=80) %!s(int64=80) tcp 0.0.0.0}] %!s(int64=0) %!s(int64=0) [/test-nginx] map[] {map[isolated:{02:42:ac:14:00:02 %!s(int=0)   %!s(int=16) 172.20.0.2 172.20.0.1 1f8f9e4ad4ce417ab95b9769a0b4c8230be144b0e9fb9b8255febd471c97b8ce }]} [{ /home/core/nginx.conf /etc/nginx/nginx.conf  ro %!s(bool=false) }]}
+
+type APIContainers struct {
+	+ID         string            `json:"Id" yaml:"Id"`
+	+Image      string            `json:"Image,omitempty" yaml:"Image,omitempty"`
+	-Command    string            `json:"Command,omitempty" yaml:"Command,omitempty"`
+	-Created    int64             `json:"Created,omitempty" yaml:"Created,omitempty"`
+	-State      string            `json:"State,omitempty" yaml:"State,omitempty"`
+	-Status     string            `json:"Status,omitempty" yaml:"Status,omitempty"`
+	-Ports      []APIPort         `json:"Ports,omitempty" yaml:"Ports,omitempty"`
+	SizeRw     int64             `json:"SizeRw,omitempty" yaml:"SizeRw,omitempty"`
+	SizeRootFs int64             `json:"SizeRootFs,omitempty" yaml:"SizeRootFs,omitempty"`
+	Names      []string          `json:"Names,omitempty" yaml:"Names,omitempty"`
+	Labels     map[string]string `json:"Labels,omitempty" yaml:"Labels,omitempty"`
+	Networks   NetworkList       `json:"NetworkSettings,omitempty" yaml:"NetworkSettings,omitempty"`
+	Mounts     []APIMount        `json:"Mounts,omitempty" yaml:"Mounts,omitempty"`
+}
+
+type Container struct {
+	ID string `json:"Id" yaml:"Id"`
+
+	Created time.Time `json:"Created,omitempty" yaml:"Created,omitempty"`
+
+	Path string   `json:"Path,omitempty" yaml:"Path,omitempty"`
+	Args []string `json:"Args,omitempty" yaml:"Args,omitempty"`
+
+	Config *Config `json:"Config,omitempty" yaml:"Config,omitempty"`
+	State  State   `json:"State,omitempty" yaml:"State,omitempty"`
+	Image  string  `json:"Image,omitempty" yaml:"Image,omitempty"`
+
+	Node *SwarmNode `json:"Node,omitempty" yaml:"Node,omitempty"`
+
+	NetworkSettings *NetworkSettings `json:"NetworkSettings,omitempty" yaml:"NetworkSettings,omitempty"`
+
+	SysInitPath    string  `json:"SysInitPath,omitempty" yaml:"SysInitPath,omitempty"`
+	ResolvConfPath string  `json:"ResolvConfPath,omitempty" yaml:"ResolvConfPath,omitempty"`
+	HostnamePath   string  `json:"HostnamePath,omitempty" yaml:"HostnamePath,omitempty"`
+	HostsPath      string  `json:"HostsPath,omitempty" yaml:"HostsPath,omitempty"`
+	LogPath        string  `json:"LogPath,omitempty" yaml:"LogPath,omitempty"`
+	Name           string  `json:"Name,omitempty" yaml:"Name,omitempty"`
+	Driver         string  `json:"Driver,omitempty" yaml:"Driver,omitempty"`
+	Mounts         []Mount `json:"Mounts,omitempty" yaml:"Mounts,omitempty"`
+
+	Volumes     map[string]string `json:"Volumes,omitempty" yaml:"Volumes,omitempty"`
+	VolumesRW   map[string]bool   `json:"VolumesRW,omitempty" yaml:"VolumesRW,omitempty"`
+	HostConfig  *HostConfig       `json:"HostConfig,omitempty" yaml:"HostConfig,omitempty"`
+	ExecIDs     []string          `json:"ExecIDs,omitempty" yaml:"ExecIDs,omitempty"`
+	GraphDriver *GraphDriver      `json:"GraphDriver,omitempty" yaml:"GraphDriver,omitempty"`
+
+	RestartCount int `json:"RestartCount,omitempty" yaml:"RestartCount,omitempty"`
+
+	AppArmorProfile string `json:"AppArmorProfile,omitempty" yaml:"AppArmorProfile,omitempty"`
+}
