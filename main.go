@@ -18,7 +18,7 @@ const endpoint = "unix:///var/run/docker.sock"
 
 var falseStrings map[string]bool
 var trackedEvents map[string]TrackedEventType
-var containerById map[string]*docker.APIContainers
+var containerById map[string]docker.APIContainers
 var filterLabel *string
 
 func main() {
@@ -50,7 +50,7 @@ func main() {
 		panic(err)
 	}
 
-	containerById = make(map[string]*docker.APIContainers)
+	containerById = make(map[string]docker.APIContainers)
 
 	containers, err := client.ListContainers(docker.ListContainersOptions{})
 	if err != nil {
@@ -58,9 +58,7 @@ func main() {
 	}
 
 	for _, container := range containers {
-		if !falseStrings[container.Labels[*filterLabel]] {
-			updateContainer(&container)
-		}
+		updateContainer(container)
 	}
 
 	// listen for events
@@ -71,25 +69,22 @@ func main() {
 		event := <-eventListener
 		trackedEvent := trackedEvents[event.Status]
 		if trackedEvent == POSITIVE_EVENT {
-			if container := containerById[event.ID]; container == nil {
+			if _, ok := containerById[event.ID]; !ok {
 				// if new container
-				if !falseStrings[container.Labels[*filterLabel]] {
-					containers, err := client.ListContainers(docker.ListContainersOptions{})
-					if err != nil {
-						panic(err)
-					}
+				containers, err := client.ListContainers(docker.ListContainersOptions{})
+				if err != nil {
+					panic(err)
+				}
 
-					for _, container := range containers {
-						if container.ID == event.ID {
-							updateContainer(&container)
-							break
-						}
+				for _, container := range containers {
+					if container.ID == event.ID {
+						updateContainer(container)
+						break
 					}
 				}
 			}
 		} else if trackedEvent == NEGATIVE_EVENT {
-			container := containerById[event.ID]
-			if container != nil {
+			if container, ok := containerById[event.ID]; ok {
 				removeContainer(container)
 			}
 		}
@@ -98,12 +93,14 @@ func main() {
 	fmt.Println("Terminating the service")
 }
 
-func updateContainer(container *docker.APIContainers) {
-	fmt.Printf("Container Up: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
-	containerById[container.ID] = container
+func updateContainer(container docker.APIContainers) {
+	if container.Labels != nil && !falseStrings[container.Labels[*filterLabel]] {
+		fmt.Printf("Container Up: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
+		containerById[container.ID] = container
+	}
 }
 
-func removeContainer(container *docker.APIContainers) {
+func removeContainer(container docker.APIContainers) {
 	fmt.Printf("Container Down: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
 	delete(containerById, container.ID)
 }
