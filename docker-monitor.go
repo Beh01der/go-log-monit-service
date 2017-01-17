@@ -40,17 +40,15 @@ func StartDockerMonitor(config DockerMonitorConfig) {
 		"stop": NEGATIVE_EVENT,
 	}
 
-	endpoint := config.Endpoint
-	if endpoint == "" {
-		endpoint = "unix:///var/run/docker.sock"
+	if config.Endpoint == "" {
+		config.Endpoint = "unix:///var/run/docker.sock"
 	}
 
-	filterLabel := config.FilterLabel
-	if filterLabel == "" {
-		filterLabel = "monitor-logs"
+	if config.FilterLabel == "" {
+		config.FilterLabel = "monitor-container"
 	}
 
-	dockerClient, err := docker.NewClient(endpoint)
+	dockerClient, err := docker.NewClient(config.Endpoint)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +61,7 @@ func StartDockerMonitor(config DockerMonitorConfig) {
 	}
 
 	for _, container := range containers {
-		if container.Labels != nil && !falseStrings[container.Labels[filterLabel]] {
+		if container.Labels != nil && !falseStrings[container.Labels[config.FilterLabel]] {
 			config.updateContainer(container)
 		}
 	}
@@ -85,7 +83,7 @@ func StartDockerMonitor(config DockerMonitorConfig) {
 
 				for _, container := range containers {
 					if container.ID == event.ID {
-						if container.Labels != nil && !falseStrings[container.Labels[filterLabel]] {
+						if container.Labels != nil && !falseStrings[container.Labels[config.FilterLabel]] {
 							config.updateContainer(container)
 						}
 						break

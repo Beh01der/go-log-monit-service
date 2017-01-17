@@ -25,6 +25,10 @@ type LogEntry struct {
 var watchers map[string]*tail.Tail
 
 func StartDockerLogMonitor(config DockerLogMonitorConfig) {
+	if config.FilterLabel == "" {
+		config.FilterLabel = "monitor-logs"
+	}
+
 	watchers = make(map[string]*tail.Tail)
 
 	StartDockerMonitor(DockerMonitorConfig{FilterLabel: config.FilterLabel, Handler: func(container docker.APIContainers, up bool) {
@@ -47,7 +51,6 @@ func StartDockerLogMonitor(config DockerLogMonitorConfig) {
 							fmt.Printf("Watching log file for service %s offset %d : %s\n", container.Names, fileOffset, logFile)
 							logEntry := LogEntry{}
 							for line := range watcher.Lines {
-								fmt.Printf("New line %s\n", line.Text)
 								err := json.Unmarshal([]byte(line.Text), &logEntry)
 								if err == nil {
 									if config.Handler != nil {
