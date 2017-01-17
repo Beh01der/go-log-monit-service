@@ -1,5 +1,5 @@
 FROM golang:1.7.4-wheezy
 
-RUN go get github.com/Beh01der/go-log-monit-service && rm -rf $GOPATH/pkg/* && rm -rf $GOPATH/src/*
+RUN go get github.com/Beh01der/go-log-monit-service && rm -rf /go/pkg/* && rm -rf /go/src/*
 
-ENTRYPOINT ["$GOPATH/bin/go-log-monit-service"]
+ENTRYPOINT ["/go/bin/go-log-monit-service"]
