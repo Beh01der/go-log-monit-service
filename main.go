@@ -22,35 +22,34 @@ func main() {
 	fmt.Printf("Using StatsD on: %s\n", *statsdAddr)
 
 	sdc := statsd.NewStatsdClient(*statsdAddr, "")
-	err := sdc.CreateSocket()
-	if err != nil {
+	if err := sdc.CreateSocket(); err != nil {
 		panic(err)
 	}
 	stats := statsd.NewStatsdBuffer(time.Second * 2, sdc)
 	defer sdc.Close()
 
 	g, _ := grok.New()
+	if err := g.AddPattern("ROUTER_ACCESS_LOG", logPattern); err != nil {
+		panic(err)
+	}
 
 	StartDockerLogMonitor(DockerLogMonitorConfig{FilterLabel:*filterLabel, Handler:func(container *docker.APIContainers, logEntry *LogEntry) {
-		values, err := g.Parse(logPattern, logEntry.Log)
-		if err != nil {
-			return
-		}
+		if values, err := g.Parse("%{ROUTER_ACCESS_LOG}", logEntry.Log); err == nil {
+			code, _ := values["code"]
+			url, _ := values["url"]
 
-		code, _ := values["code"]
-		url, _ := values["url"]
+			if codeInt, err := strconv.Atoi(code); err == nil && codeInt > 99 {
+				stats.Incr("router.hit", 1)
+				stats.Incr("router.hit." + code, 1)
+			}
 
-		if codeInt, err := strconv.Atoi(code); err == nil && codeInt > 99 {
-			stats.Incr("router.hit", 1)
-			stats.Incr("router.hit." + code, 1)
-		}
-
-		if url != "" {
-			if strings.Contains(url, "api/note") {
-				stats.Incr("api.note.hit", 1)
-				stats.Incr("api.note", 1)
-			} else if strings.Contains(url, "api/policy") {
-				stats.Incr("api.hit", 1)
+			if url != "" {
+				if strings.Contains(url, "api/note") {
+					stats.Incr("api.note.hit", 1)
+					stats.Incr("api.note", 1)
+				} else if strings.Contains(url, "api/policy") {
+					stats.Incr("api.hit", 1)
+				}
 			}
 		}
 	}})

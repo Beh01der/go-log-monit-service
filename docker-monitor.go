@@ -72,8 +72,7 @@ func StartDockerMonitor(config DockerMonitorConfig) {
 
 	for {
 		event := <-eventListener
-		trackedEvent := trackedEvents[event.Status]
-		if trackedEvent == POSITIVE_EVENT {
+		if trackedEvent := trackedEvents[event.Status]; trackedEvent == POSITIVE_EVENT {
 			if _, ok := containerById[event.ID]; !ok {
 				// if new container
 				containers, err := dockerClient.ListContainers(docker.ListContainersOptions{})

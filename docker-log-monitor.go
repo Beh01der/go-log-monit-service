@@ -35,24 +35,20 @@ func StartDockerLogMonitor(config DockerLogMonitorConfig) {
 		if up {
 			fmt.Printf("Container Up: ID=%s Labels=%s Image=%s Names=%s\n", container.ID, container.Labels, container.Image, container.Names)
 			logFile := "/var/lib/docker/containers/" + container.ID + "/" + container.ID + "-json.log"
-			fileInfo, err := os.OpenFile(logFile, os.O_RDONLY, 0)
-			if err == nil {
-				fileStat, err := fileInfo.Stat()
-				if err == nil {
+			if fileInfo, err := os.OpenFile(logFile, os.O_RDONLY, 0); err == nil {
+				if fileStat, err := fileInfo.Stat(); err == nil {
 					fileOffset := int64(0)
 					if !config.ReadFromStart {
 						fileOffset = fileStat.Size()
 					}
 
-					watcher, err := tail.TailFile(logFile, tail.Config{Follow: true, Location: &tail.SeekInfo{ Offset: fileOffset}})
-					if err == nil {
+					if watcher, err := tail.TailFile(logFile, tail.Config{Follow: true, Location: &tail.SeekInfo{ Offset: fileOffset}}); err == nil {
 						watchers[container.ID] = watcher
 						go func() {
 							fmt.Printf("Watching log file for service %s offset %d : %s\n", container.Names, fileOffset, logFile)
 							logEntry := LogEntry{}
 							for line := range watcher.Lines {
-								err := json.Unmarshal([]byte(line.Text), &logEntry)
-								if err == nil {
+								if err := json.Unmarshal([]byte(line.Text), &logEntry); err == nil {
 									if config.Handler != nil {
 										config.Handler(&container, &logEntry)
 									}
