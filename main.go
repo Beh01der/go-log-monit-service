@@ -40,7 +40,7 @@ func main() {
 
 			if codeInt, err := strconv.Atoi(code); err == nil && codeInt > 99 {
 				stats.Incr("router.hit", 1)
-				stats.Incr("router.hit." + code, 1)
+				stats.Incr("router.hit." + strconv.Itoa(codeInt / 100 * 100), 1)
 			}
 
 			if url != "" {
@@ -50,6 +50,16 @@ func main() {
 				} else if strings.Contains(url, "api/policy") {
 					stats.Incr("api.hit", 1)
 				}
+
+				site := "other"
+				if strings.Contains(url, "memz.co") {
+					site = "memz"
+				} else if strings.Contains(url, "datasymphony") {
+					site = "datasymphony"
+				} else if strings.Contains(url, "soap-shop") {
+					site = "soap"
+				}
+				stats.Incr("site.hit." + site, 1)
 			}
 		}
 	}})
